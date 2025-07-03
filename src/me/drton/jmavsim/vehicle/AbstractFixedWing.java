@@ -71,8 +71,7 @@ public abstract class AbstractFixedWing extends AbstractVehicle {
         Vector3d windSpeed = new Vector3d(0.0,0.0,0.0);
 
 
-        if (false) {
-       // if (!ignoreWind) {
+        if (!ignoreWind && armed) {
             windSpeed.add(getWorld().getEnvironment().getCurrentWind(position));
             windSpeed.scale(-1.0);
         }
@@ -81,7 +80,7 @@ public abstract class AbstractFixedWing extends AbstractVehicle {
 
         wing.setAirSpeed(airSpeed);
         wing.setArmed(armed);
-        
+
         // Pass vehcile state to wing
         wing.setVehicleDynamics(
             getPosition(), 

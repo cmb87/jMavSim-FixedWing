@@ -50,9 +50,9 @@ public class ActuatedWing {
     public final double S_prop = 0.10178760197630929;
 
     // Propulsion
-    public final double k_motor = 40;
-    public final double k_T_P = 0;
-    public final double k_Omega = 0;
+    public final double k_motor =  30 ;//40;
+    public final double k_T_P = 1;
+    public final double k_Omega = 0.1;
     public final double C_prop = 1;
 
     // Lift Coefficients
