@@ -4,11 +4,23 @@
 Extension of original  [JMavSim](https://github.com/PX4/jMAVSim) for fixed wing based on  [X8](https://github.com/krisgry/x8)
 
 
-
-
 ![screenshot](art/screenshot.png)
 
+## Start with PX4
+
+    mavproxy.py --master=tcpin:0.0.0.0:4560 --out=udp:127.0.0.1:14560 --console
+
+    cd out/production
+    java -Djava.ext.dirs= -jar jmavsim_run.jar -lockstep -ap px4
+
+    make px4_sitl none_uav
+
+    
+
 ### Installation ###
+
+PX4 register new px4 fmu similar like none_iris (just look how none_iris is added in PX4, do it similar for [FMU](./PX4FMU/10020_none_uav))
+
 
 Requirements:
  * Java 8 or newer (JDK, http://www.oracle.com/technetwork/java/javase/downloads/index.html)
