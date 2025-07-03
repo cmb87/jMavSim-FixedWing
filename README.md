@@ -1,6 +1,10 @@
-[![Build Status](https://travis-ci.org/PX4/jMAVSim.svg?branch=master)](https://travis-ci.org/PX4/jMAVSim)
 
-Simple multirotor simulator with MAVLink protocol support
+# Simple fixed wing simulator with MAVLink protocol support
+
+Extension of original  [JMavSim](https://github.com/PX4/jMAVSim) for fixed wing based on  [X8](https://github.com/krisgry/x8)
+
+
+
 
 ![screenshot](art/screenshot.png)
 
