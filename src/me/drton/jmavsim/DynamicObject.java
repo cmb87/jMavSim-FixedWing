@@ -24,7 +24,7 @@ public abstract class DynamicObject extends KinematicObject {
 
     public DynamicObject(World world, boolean showGui) {
         super(world, showGui);
-        rotation.rotX(0);
+        rotation.rotX(0.0);
         momentOfInertia.rotZ(0.0);
         momentOfInertiaInv.rotZ(0.0);
     }

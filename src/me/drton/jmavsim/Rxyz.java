@@ -25,9 +25,15 @@ public class Rxyz {
         yawMatrix.rotZ(yaw);
 
         // Combine in Z-Y-X order: R = roll * pitch * yaw
+
+        // Matrix3d rotationMatrix = new Matrix3d();
+        // rotationMatrix.mul(pitchMatrix, yawMatrix);   // temp = pitch * yaw
+        // rotationMatrix.mul(rollMatrix, rotationMatrix); // R = roll * (pitch * yaw)
+
         Matrix3d rotationMatrix = new Matrix3d();
-        rotationMatrix.mul(pitchMatrix, yawMatrix);   // temp = pitch * yaw
-        rotationMatrix.mul(rollMatrix, rotationMatrix); // R = roll * (pitch * yaw)
+        rotationMatrix.mul(pitchMatrix, rollMatrix);   // temp = pitch * yaw
+        rotationMatrix.mul(yawMatrix, rotationMatrix); // R = roll * (pitch * yaw)
+
 
         return rotationMatrix;
     }

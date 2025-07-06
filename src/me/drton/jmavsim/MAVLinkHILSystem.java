@@ -4,6 +4,7 @@ import me.drton.jmavlib.conversion.RotationConversion;
 import me.drton.jmavlib.mavlink.MAVLinkMessage;
 import me.drton.jmavlib.mavlink.MAVLinkSchema;
 import me.drton.jmavsim.vehicle.AbstractVehicle;
+import me.drton.jmavsim.Rxyz;
 
 import javax.vecmath.*;
 import java.util.Arrays;
@@ -151,6 +152,13 @@ public class MAVLinkHILSystem extends MAVLinkHILSystemBase {
         }
         stopped = false;
         inited = true;
+        //vehicle.setPosition(new Vector3d(0, 0, -100));
+        //vehicle.setVelocity(new Vector3d(20, 0, 0));
+
+        Matrix3d mx = Rxyz.createRotationMatrix(0.0, 30.0*3.14/180, 0.0*3.14/180);
+      //  mx.transpose();
+
+        vehicle.setRotation(mx);
     }
 
     @Override

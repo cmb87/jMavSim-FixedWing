@@ -57,6 +57,20 @@ public class MAVLinkDisplayOnly extends MAVLinkHILSystemBase {
             lon=Math.toRadians(msg.getDouble("lon")*1e-7);
             alt=msg.getDouble("alt")*1e-3;
         
+
+            // System.out.println(
+            //     "quat: " + quat[0] + ", " + quat[1] + ", " + quat[2] + ", " + quat[3] 
+            // );
+
+            // quat[1] = 0.2;
+            // double quatAbs = Math.sqrt(quat[0]*quat[0] + quat[1]*quat[1] + quat[2]*quat[2] + quat[3]*quat[3]);
+            // for (int i = 0; i < 4; ++i) {
+            //     quat[i] = quat[i] / quatAbs;  // normalize quaternion
+            // }   
+
+
+            
+
             Vector3d pos = new Vector3d(EARTH_RADIUS*(lat-lat0),EARTH_RADIUS*(lon-lon0)*Math.cos(lat0),alt0-alt);
             double [] euler = RotationConversion.eulerAnglesByQuaternion(quat);
             Matrix3d dcm = new Matrix3d(RotationConversion.rotationMatrixByEulerAngles(euler[0],euler[1],euler[2]));   

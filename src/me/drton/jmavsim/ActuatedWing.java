@@ -244,6 +244,7 @@ public class ActuatedWing {
 
             // Aerodynamic forces in body frame
             Matrix3d R_alpha_beta = Rxyz.createRotationMatrix(0.0, alpha, beta);
+            R_alpha_beta.transpose();
 
             Vector3d F_aero = new Vector3d(-f_drag_s, f_y, -f_lift_s);
             R_alpha_beta.transform(F_aero);
