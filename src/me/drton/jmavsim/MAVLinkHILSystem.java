@@ -155,7 +155,7 @@ public class MAVLinkHILSystem extends MAVLinkHILSystemBase {
         //vehicle.setPosition(new Vector3d(0, 0, -100));
         //vehicle.setVelocity(new Vector3d(20, 0, 0));
 
-        Matrix3d mx = Rxyz.createRotationMatrix(0.0, 30.0*3.14/180, 0.0*3.14/180);
+        Matrix3d mx = Rxyz.createRotationMatrix(0.0, 0.0*3.14/180, 0.0*3.14/180);
       //  mx.transpose();
 
         vehicle.setRotation(mx);

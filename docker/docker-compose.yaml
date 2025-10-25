@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+
+  jmavsim-1:
+    container_name: jmavsim-1
+    build:
+      context:  ./service-jmavsim
+      dockerfile: Dockerfile
+    image: jmavsim:latest
+    entrypoint: ["java", "-Djava.ext.dirs=", "-jar", "jmavsim_run.jar", "-no-gui", "-ap", "px4", "-lockstep", "-tcp", "px4-sitl-2:4560"]
+    environment:
+ #   - PX4_HOME_LAT=47.397742
+ #   - PX4_HOME_LON=6.545594
+ #   - PX4_HOME_ALT=488
+
+
+  px4-sitl-1:
+    container_name: px4-sitl-1
+    tty: true
+    stdin_open: true
+    ports:
+      - 13371:13371
+    build:
+      context: ../
+      dockerfile: testsHybride/service-px4sitl/Dockerfile
+    image: px4-sitl:latest
+    depends_on:
+      - jmavsim-1
+    entrypoint: ["make", "px4_sitl_default", "none_uav"]
+    volumes:
+      - ./service-px4sitl/rcS1:/px4/tests/testsHybride/service-px4sitl/px4-custom/ROMFS/px4fmu_common/init.d-posix/rcS:ro
+      - ./service-px4sitl/px4-rc.mavlink1:/px4/tests/testsHybride/service-px4sitl/px4-custom/ROMFS/px4fmu_common/init.d-posix/px4-rc.mavlink:ro
+    environment:
+    - PX4_SIM_HOSTNAME=jmavsim-1
+
+    
+

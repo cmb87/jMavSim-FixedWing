@@ -12,6 +12,7 @@ Extension of original  [JMavSim](https://github.com/PX4/jMAVSim) for fixed wing 
 
     cd out/production
     java -Djava.ext.dirs= -jar jmavsim_run.jar -lockstep -ap px4
+    java -Djava.ext.dirs= -jar jmavsim_run.jar -ap px4 -lockstep -tcp 192.168.178.127:4560 -no-gui 
 
     make px4_sitl none_uav
 
