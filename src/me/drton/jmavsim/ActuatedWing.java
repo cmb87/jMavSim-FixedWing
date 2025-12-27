@@ -13,10 +13,6 @@ import me.drton.jmavsim.Rxyz;
  * simulate spin up/slow down.
  */
 
-
-
-
-
 public class ActuatedWing {
 
     private boolean armed = false;
@@ -100,6 +96,17 @@ public class ActuatedWing {
     public final double C_n_delta_a = -0.00339;
     public final double C_n_delta_r = 0;
 
+
+    // Stall blending limits
+    private static final double ALPHA_BLEND_START = 15.0 * Math.PI / 180.0;
+    private static final double ALPHA_BLEND_END   = 30.0 * Math.PI / 180.0;
+
+    // Sphere model constants
+    private static final double C_D_SPHERE = 1.0;   // ~0.9–1.1 for turbulent flow
+    private static final double SPHERE_RADIUS = 0.1; // meters (tune!)
+
+    private final double A_sphere = Math.PI * SPHERE_RADIUS * SPHERE_RADIUS;
+
     double timeAccumulator = 0.0;
 
     // --------------------------------------------------------------
@@ -125,42 +132,14 @@ public class ActuatedWing {
 
 
             double deg2rad = Math.PI / 180.0;
-
-            // double elevator = (control.size() > 0 ? control.get(0) : 0.0) * 10.0 * deg2rad;
-            // double leftAileron = control.size() > 1 ? control.get(1) : 0.0;
-            // double rightAileron = control.size() > 2 ? control.get(2) : 0.0;
-            // double aileron = (-rightAileron + leftAileron) * 0.5 * 10.0 * deg2rad;
-            // double rudder = (control.size() > 3 ? control.get(3) : 0.0) * 10.0 * deg2rad;
-            // double throttle = control.size() > 4 ? control.get(4) : 0.0;
-
             double throttle = 0.0;
 
-            if ( this.armed ) {
-                //throttle = 0.5 + (control.size() > 0 ? control.get(0) : 0.0)/2.0;
-                throttle = (control.size() > 0 ? control.get(0) : 0.0);
-            } 
-            
+            double elevator = 0.0;
+            double aileron = 0.0;
+            double rudder = 0.0;
 
-
-
-            double leftElevon =  control.size() > 1 ? control.get(1) : 0.0;
-            double rightElevon = control.size() > 2 ? control.get(2) : 0.0;
-
-
-            double elevator = -0.5 * (leftElevon + rightElevon) * 40.0 * deg2rad;
-            double aileron = 0.5 * (rightElevon - leftElevon) * 40.0 * deg2rad;
-            double rudder = 0.0; //-(control.size() > 3 ? control.get(3) : 0.0) * 10.0 * deg2rad;
-
-
-            // double elevator = -(control.size() > 1 ? control.get(1) : 0.0) * 30.0 * deg2rad;
-            // double leftAileron = control.size() > 2 ? control.get(2) : 0.0;
-            // double rightAileron = control.size() > 3 ? control.get(3) : 0.0;
-            // double aileron = -0.5*(-rightAileron + leftAileron) * 30.0 * deg2rad ;
-            // double rudder = 0.0; //-(control.size() > 3 ? control.get(4) : 0.0) * 10.0 * deg2rad;
-            
-   
             // Relative velocity
-            
+    
             Matrix3d rotationTranspose = new Matrix3d(); 
             rotationTranspose.set(rotation);
             rotationTranspose.transpose();
@@ -180,93 +159,126 @@ public class ActuatedWing {
             double alpha = Math.atan2(w_r, u_r+0.00001);
             double beta = Math.asin(v_r / Va);
 
+            double blend;
+            if (Math.abs(alpha) <= ALPHA_BLEND_START) {
+                blend = 0.0;
+            } else if (Math.abs(alpha) >= ALPHA_BLEND_END) {
+                blend = 1.0;
+            } else {
+                blend = (Math.abs(alpha) - ALPHA_BLEND_START) /
+                        (ALPHA_BLEND_END - ALPHA_BLEND_START);
+            }
 
-            // System.out.printf("throttle=%.2f, elev=%.2f, ail=%.2f, rudder=%.2f alpha=%.2f, beta=%.2f%n",
-            //     throttle,
-            //     elevator,
-            //     aileron,
-            //     rudder,
-            //     alpha,
-            //     beta
-            // );
-
+            blend = 1.0;
 
             timeAccumulator += dt;
 
-            if (timeAccumulator >= 1.0) {
-                System.out.printf(" alpha=%.2f, beta=%.2f, w_r=%.2f, u_r=%.2f, t=%.2f%n",
-                    alpha/deg2rad,
-                    beta/deg2rad,
-                    w_r,
-                    u_r,
-                    throttle
+            // if (timeAccumulator >= 1.0) {
+            //     System.out.printf(" alpha=%.2f, beta=%.2f, w_r=%.2f, u_r=%.2f, t=%.2f%n",
+            //         alpha/deg2rad,
+            //         beta/deg2rad,
+            //         w_r,
+            //         u_r,
+            //         throttle
+            //     );
+
+            //     timeAccumulator = 0.0;
+            // }
+
+            // ============================
+            // Sphere aerodynamic model
+            // ============================
+            double f_drag_sphere =
+                0.5 * this.rho * Va * Va * A_sphere * C_D_SPHERE;
+
+            // Drag only, opposite to velocity
+            Vector3d F_sphere = new Vector3d(
+                -f_drag_sphere * (u_r / Va),
+                -f_drag_sphere * (v_r / Va),
+                -f_drag_sphere * (w_r / Va)
+            );
+
+            // Sphere moments (very small, mostly damping)
+            Vector3d T_sphere = new Vector3d(
+                -0.001 * p,
+                -0.001 * q,
+                -0.001 * r
+            );
+
+
+            // ============================
+            // X8 aerodynamic model
+            // ============================
+            if (false){
+                // Lift
+                double C_L_alpha = this.C_L_0 + this.C_L_alpha * alpha;
+                double f_lift_s = 0.5 * this.rho * Va * Va * this.S_wing * (
+                    C_L_alpha + this.C_L_q * this.c / (2 * Va) * q + this.C_L_delta_e * elevator
                 );
 
-                timeAccumulator = 0.0;
-            }
+                // Drag
+                double C_D_alpha = this.C_D_0 + this.C_D_alpha1 * alpha + this.C_D_alpha2 * alpha * alpha;
+                double C_D_beta = this.C_D_beta1 * beta + this.C_D_beta2 * beta * beta;
+                double f_drag_s = 0.5 * this.rho * Va * Va * this.S_wing * (
+                    C_D_alpha + C_D_beta + this.C_D_q * this.c / (2 * Va) * q + this.C_D_delta_e * elevator * elevator
+                );
 
-            // Lift
-            double C_L_alpha = this.C_L_0 + this.C_L_alpha * alpha;
-            double f_lift_s = 0.5 * this.rho * Va * Va * this.S_wing * (
-                C_L_alpha + this.C_L_q * this.c / (2 * Va) * q + this.C_L_delta_e * elevator
-            );
+                // Pitching moment
+                double m_a = this.C_m_0 + this.C_m_alpha * alpha;
+                double m = 0.5 * this.rho * Va * Va * this.S_wing * this.c * (
+                    m_a + this.C_m_q * this.c / (2 * Va) * q + this.C_m_delta_e * elevator
+                );
 
-            // Drag
-            double C_D_alpha = this.C_D_0 + this.C_D_alpha1 * alpha + this.C_D_alpha2 * alpha * alpha;
-            double C_D_beta = this.C_D_beta1 * beta + this.C_D_beta2 * beta * beta;
-            double f_drag_s = 0.5 * this.rho * Va * Va * this.S_wing * (
-                C_D_alpha + C_D_beta + this.C_D_q * this.c / (2 * Va) * q + this.C_D_delta_e * elevator * elevator
-            );
+                // Lateral force
+                double f_y = 0.5 * this.rho * Va * Va * this.S_wing * (
+                    this.C_Y_0 + this.C_Y_beta * beta + this.C_Y_p * this.b / (2 * Va) * p +
+                    this.C_Y_r * this.b / (2 * Va) * r + this.C_Y_delta_a * aileron + this.C_Y_delta_r * rudder
+                );
 
-            // Pitching moment
-            double m_a = this.C_m_0 + this.C_m_alpha * alpha;
-            double m = 0.5 * this.rho * Va * Va * this.S_wing * this.c * (
-                m_a + this.C_m_q * this.c / (2 * Va) * q + this.C_m_delta_e * elevator
-            );
+                // Roll moment
+                double l = 0.5 * this.rho * Va * Va * this.b * this.S_wing * (
+                    this.C_l_0 + this.C_l_beta * beta + this.C_l_p * this.b / (2 * Va) * p +
+                    this.C_l_r * this.b / (2 * Va) * r + this.C_l_delta_a * aileron + this.C_l_delta_r * rudder
+                );
 
-            // Lateral force
-            double f_y = 0.5 * this.rho * Va * Va * this.S_wing * (
-                this.C_Y_0 + this.C_Y_beta * beta + this.C_Y_p * this.b / (2 * Va) * p +
-                this.C_Y_r * this.b / (2 * Va) * r + this.C_Y_delta_a * aileron + this.C_Y_delta_r * rudder
-            );
+                // Yaw moment
+                double n = 0.5 * this.rho * Va * Va * this.b * this.S_wing * (
+                    this.C_n_0 + this.C_n_beta * beta + this.C_n_p * this.b / (2 * Va) * p +
+                    this.C_n_r * this.b / (2 * Va) * r + this.C_n_delta_a * aileron + this.C_n_delta_r * rudder
+                );
 
-            // Roll moment
-            double l = 0.5 * this.rho * Va * Va * this.b * this.S_wing * (
-                this.C_l_0 + this.C_l_beta * beta + this.C_l_p * this.b / (2 * Va) * p +
-                this.C_l_r * this.b / (2 * Va) * r + this.C_l_delta_a * aileron + this.C_l_delta_r * rudder
-            );
+                // Aerodynamic forces in body frame
+                Matrix3d R_alpha_beta = Rxyz.createRotationMatrix(0.0, alpha, beta);
+                R_alpha_beta.transpose();
 
-            // Yaw moment
-            double n = 0.5 * this.rho * Va * Va * this.b * this.S_wing * (
-                this.C_n_0 + this.C_n_beta * beta + this.C_n_p * this.b / (2 * Va) * p +
-                this.C_n_r * this.b / (2 * Va) * r + this.C_n_delta_a * aileron + this.C_n_delta_r * rudder
-            );
+                Vector3d F_aero = new Vector3d(-f_drag_s, f_y, -f_lift_s);
+                R_alpha_beta.transform(F_aero);
 
-            // Aerodynamic forces in body frame
-            Matrix3d R_alpha_beta = Rxyz.createRotationMatrix(0.0, alpha, beta);
-            R_alpha_beta.transpose();
+                // Torques
+                Vector3d T_aero = new Vector3d(l, m, n);
+        
+            };
 
-            Vector3d F_aero = new Vector3d(-f_drag_s, f_y, -f_lift_s);
-            R_alpha_beta.transform(F_aero);
+            Vector3d F_aero = new Vector3d( 0, 0, 0 );
+            Vector3d T_aero = new Vector3d( 0, 0, 0 );
 
-            // Torques
-            Vector3d T_aero = new Vector3d(l, m, n);
+            // ============================
+            // Blend aerodynamic models
+            // ============================
+            Vector3d F_blended = new Vector3d();
+            F_blended.scale(1.0 - blend, F_aero);
+            F_blended.scaleAdd(blend, F_sphere, F_blended);
 
-            // Propulsion
-            double Vd = Va + throttle  * (this.k_motor - Va);
-            Vector3d F_prop = new Vector3d(0.5 * this.rho * this.S_prop * this.C_prop * Vd * (Vd - Va), 0, 0);
-            Vector3d T_prop = new Vector3d(-this.k_T_P * Math.pow(this.k_Omega * throttle, 2), 0, 0);
+            Vector3d T_blended = new Vector3d();
+            T_blended.scale(1.0 - blend, T_aero);
+            T_blended.scaleAdd(blend, T_sphere, T_blended);
+
 
             // Total force and torque
-            Force.add(F_prop);
-            Force.add(F_aero);
-
-            Torque.add(T_aero);
-            Torque.add(T_prop);
+            Force.add(F_blended);
+            Torque.add(T_blended);
 
 
-
-        
         }
         lastTime = t;
     }

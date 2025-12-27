@@ -8,6 +8,7 @@ import me.drton.jmavsim.vehicle.AbstractMulticopter;
 import me.drton.jmavsim.vehicle.Quadcopter;
 import me.drton.jmavsim.vehicle.X8Fw;
 import me.drton.jmavsim.vehicle.Hexacopter;
+import me.drton.jmavsim.vehicle.CoaxialTailsitter;
 
 import me.drton.jmavsim.vehicle.AbstractFixedWing;
 
@@ -454,12 +455,13 @@ public class Simulator implements Runnable {
     private AbstractFixedWing buildFixedWing() {
 
         
-        Vector3d gc = new Vector3d(0.0, 0.0, 0.0);  // gravity center
+        Vector3d gc = new Vector3d(0.000, 0.00, 0.000);  // gravity center
         //AbstractMulticopter vehicle = new Quadcopter(world, vehicle_model, "x", "default",
         //                                             0.33 / 2, 4.0, 0.05, 0.005, gc, SHOW_GUI);
 
-        AbstractFixedWing vehicle = new X8Fw(world, vehicle_model, "x", "default",
-                                                     0.33 / 2, 4.0, 0.05, 0.005, gc, SHOW_GUI);
+       // AbstractFixedWing vehicle = new X8Fw(world, vehicle_model, "x", "default", 0.33 / 2, 4.0, 0.05, 0.005, gc, SHOW_GUI);
+
+        AbstractFixedWing vehicle = new CoaxialTailsitter(world, vehicle_model, "x", "default", 0.07, 4.0, 0.05, 0.005, gc, SHOW_GUI);
 
 
                                                 //      Hexacopter(World world, String modelName, String orientation,
@@ -474,15 +476,17 @@ public class Simulator implements Runnable {
         Matrix3d I = new Matrix3d();
 
         // Moments of inertia
-        I.m00 =  1.229;  // X
-        I.m11 =  0.1702;  // Y
-        I.m22 =  0.8808;  // Z
+        // I.m00 =  1.229;  // X
+        // I.m11 =  0.1702;  // Y
+        // I.m22 =  0.8808;  // Z
       //  I.m02 =  -0.9343 ;
       //  I.m20 =  -0.9343 ;
- 
+        I.m00 = 0.001;  // X
+        I.m11 = 0.001;  // Y
+        I.m22 = 0.001;  // Z
 
         vehicle.setMomentOfInertia(I);
-        vehicle.setMass(3.364);
+        vehicle.setMass(0.6);
         vehicle.setDragMove(0.01);
 
         SimpleSensors sensors = new SimpleSensors();
