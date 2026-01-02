@@ -3,7 +3,8 @@ package me.drton.jmavsim.vehicle;
 import me.drton.jmavsim.ReportUtil;
 import me.drton.jmavsim.Rotor;
 import me.drton.jmavsim.Servo2D;
-import me.drton.jmavsim.ActuatedWing;
+//import me.drton.jmavsim.ActuatedWing;
+import me.drton.jmavsim.SimpleWing;
 import me.drton.jmavsim.World;
 import me.drton.jmavsim.ForceTorque;
 
@@ -19,7 +20,7 @@ public abstract class AbstractFixedWing extends AbstractVehicle {
     private double dragMove = 0.0;
     private double dragRotate = 0.0;
     protected Rotor[] rotors;
-    protected ActuatedWing wing;
+    protected SimpleWing wing;
     protected Servo2D servo; 
     long t0 = 0;
 
@@ -28,7 +29,33 @@ public abstract class AbstractFixedWing extends AbstractVehicle {
     public AbstractFixedWing(World world, String modelName, boolean showGui) {
         super(world, modelName, showGui);
 
-        wing = new ActuatedWing();
+        wing = new SimpleWing();
+
+        wing.setCL(new double[] {
+           -1.88896752e-04,
+            -7.40688499e-05,
+            1.02319628e-01,
+            4.61432904e-01
+        });
+
+        wing.setCD(new double[] {
+            5.19489471e-06,
+            2.34426920e-04,
+            -7.11695067e-04,
+            1.08123657e-02
+        });
+
+        wing.setCM(new double[] {
+            2.41941366e-06,
+            7.85386596e-05,
+            1.70223250e-03,
+            -1.09078886e-01
+        });
+
+        wing.setWingArea(0.077);
+        wing.setChord(0.11);
+
+
         servo = new Servo2D();
         rotors = new Rotor[getRotorsNum()];
         for (int i = 0; i < getRotorsNum(); i++) {
@@ -89,18 +116,10 @@ public abstract class AbstractFixedWing extends AbstractVehicle {
         }
 
         airSpeed.add(windSpeed);
-
         wing.setAirSpeed(airSpeed);
-        wing.setArmed(armed);
+        wing.setVehicleDynamics( getRotationRate() ,getRotation());
 
-        // Pass vehcile state to wing
-        wing.setVehicleDynamics(
-            getPosition(), 
-            getVelocity(), 
-            getAcceleration(), 
-            getRotationRate(), 
-            getRotation()
-        );
+
 
         // Update loop
         wing.update(t, paused);
@@ -123,21 +142,19 @@ public abstract class AbstractFixedWing extends AbstractVehicle {
         double yawCmd   = control.size() > nRotors + 1 ? control.get(nRotors + 1) : 0.0;
         servo.setCommand(pitchCmd, yawCmd);
 
-        wing.setControl(control); // Unused
-
         // System.out.println(
         //     "pitch =" + servo.getPitch() + ", " +
         //     "yaw=" + servo.getYaw()
         // );
 
-        if (t - t0 >= 1.0) {
-            System.out.printf(" pitch=%.2f, yaw=%.2f %n",
-                servo.getPitch()*180/3.14,
-                servo.getYaw()*180/3.14
-            );
+        // if (t - t0 >= 1.0) {
+        //     System.out.printf(" pitch=%.2f, yaw=%.2f %n",
+        //         servo.getPitch()*180/3.14,
+        //         servo.getYaw()*180/3.14
+        //     );
 
-            t0 = t;
-        }
+        //     t0 = t;
+        // }
       
 
         // System.out.println(
@@ -163,7 +180,7 @@ public abstract class AbstractFixedWing extends AbstractVehicle {
         Vector3d fBody = new Vector3d();
 
         // --- Aerodynamic body forces (already in body frame) ---
-        fBody.set(wing.getThrust());
+        fBody.set(wing.getForce());
 
         for (int i = 0; i < n; i++) {
             double T = rotors[i].getThrust();

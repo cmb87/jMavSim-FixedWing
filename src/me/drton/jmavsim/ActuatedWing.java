@@ -29,19 +29,20 @@ public class ActuatedWing {
     public final double rho = 1.225;    // air density at sea level (kg/m³)
 
     // Environment
+        private Vector3d airSpeed;
     private Vector3d position;
     private Vector3d velocity;
     private Vector3d acceleration;
     private Vector3d rotationRate;
-    private Vector3d airSpeed;
+
     protected Matrix3d rotation = new Matrix3d();
 
     private List<Double> control = List.of(0.0, 0.0, 0.0, 0.0, 0.0); // [elevator, aileron, rudder, throttle]
 
 
     // Geometry
-    public final double S_wing = 0.75;
-    public final double b = 2.1;
+    public final double S_wing = 0.75/3.0;
+    public final double b = 2.1/3.0;
     public final double c = 0.35714285714285715;
     public final double S_prop = 0.10178760197630929;
 
@@ -209,7 +210,7 @@ public class ActuatedWing {
             // ============================
             // X8 aerodynamic model
             // ============================
-            if (false){
+         
                 // Lift
                 double C_L_alpha = this.C_L_0 + this.C_L_alpha * alpha;
                 double f_lift_s = 0.5 * this.rho * Va * Va * this.S_wing * (
@@ -257,10 +258,10 @@ public class ActuatedWing {
                 // Torques
                 Vector3d T_aero = new Vector3d(l, m, n);
         
-            };
+  
 
-            Vector3d F_aero = new Vector3d( 0, 0, 0 );
-            Vector3d T_aero = new Vector3d( 0, 0, 0 );
+           // Vector3d F_aero = new Vector3d( 0, 0, 0 );
+           // Vector3d T_aero = new Vector3d( 0, 0, 0 );
 
             // ============================
             // Blend aerodynamic models

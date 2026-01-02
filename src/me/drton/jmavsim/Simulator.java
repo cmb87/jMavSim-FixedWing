@@ -483,7 +483,7 @@ public class Simulator implements Runnable {
       //  I.m20 =  -0.9343 ;
         I.m00 = 0.001;  // X
         I.m11 = 0.001;  // Y
-        I.m22 = 0.001;  // Z
+        I.m22 = 0.004;  // Z
 
         vehicle.setMomentOfInertia(I);
         vehicle.setMass(0.6);
