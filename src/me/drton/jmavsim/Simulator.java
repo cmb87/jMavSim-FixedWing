@@ -455,13 +455,13 @@ public class Simulator implements Runnable {
     private AbstractFixedWing buildFixedWing() {
 
         
-        Vector3d gc = new Vector3d(0.000, 0.00, 0.000);  // gravity center
+        Vector3d gc = new Vector3d(0.000, 0.005, 0.000);  // gravity center
         //AbstractMulticopter vehicle = new Quadcopter(world, vehicle_model, "x", "default",
         //                                             0.33 / 2, 4.0, 0.05, 0.005, gc, SHOW_GUI);
 
        // AbstractFixedWing vehicle = new X8Fw(world, vehicle_model, "x", "default", 0.33 / 2, 4.0, 0.05, 0.005, gc, SHOW_GUI);
 
-        AbstractFixedWing vehicle = new CoaxialTailsitter(world, vehicle_model, "x", "default", 0.07, 4.0, 0.05, 0.005, gc, SHOW_GUI);
+        AbstractFixedWing vehicle = new CoaxialTailsitter(world, vehicle_model, "x", "default", 0.09, 4.0, 0.05, 0.005, gc, SHOW_GUI);
 
 
                                                 //      Hexacopter(World world, String modelName, String orientation,
@@ -483,7 +483,7 @@ public class Simulator implements Runnable {
       //  I.m20 =  -0.9343 ;
         I.m00 = 0.001;  // X
         I.m11 = 0.001;  // Y
-        I.m22 = 0.004;  // Z
+        I.m22 = 0.001;  // Z
 
         vehicle.setMomentOfInertia(I);
         vehicle.setMass(0.6);
@@ -597,13 +597,21 @@ public class Simulator implements Runnable {
             // time is not increased.
             boolean ioRunOnly = (slowDownCounter % checkFactor != 0);
 
+            System.out.println("SlowdownCounter" + slowDownCounter);
+
             if (!hilSystem.gotHilActuatorControls() && !ioRunOnly) {
                 advanceTime();
+                System.out.println(" advancing without hilAcutoators");
             }
 
             now = getSimMillis();
 
             needsToPause = ((lastTimeRan == now) || ioRunOnly);
+
+            if (needsToPause) {
+                System.out.println("NeedsToPause" + needsToPause);
+            }
+            
         } else {
             now = getSimMillis();
         }
@@ -699,6 +707,8 @@ public class Simulator implements Runnable {
     public void advanceTime() {
         if (LOCKSTEP_ENABLED) {
             simTimeUs += sleepInterval;
+
+            //System.out.println("Advancing SimTime " + simTimeUs  );
         }
         // not needed without lockstep.
     }

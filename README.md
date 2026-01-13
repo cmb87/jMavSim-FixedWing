@@ -12,7 +12,7 @@ Extension of original  [JMavSim](https://github.com/PX4/jMAVSim) for fixed wing 
 
     cd out/production
     java -Djava.ext.dirs= -jar jmavsim_run.jar -lockstep -ap px4
-    java -Djava.ext.dirs= -jar jmavsim_run.jar -ap px4 -lockstep -tcp 192.168.178.127:4560 -no-gui 
+    java -Djava.ext.dirs= -jar jmavsim_run.jar -ap px4 -lockstep -tcp 127.0.0.1:4560 -no-gui 
 
     make px4_sitl none_uav
 
@@ -49,6 +49,8 @@ Create a standalone runnable JAR file with all libraries included, copy supporti
 ```
 ant create_run_jar copy_res
 cd out/production
+java -Djava.ext.dirs= -jar jmavsim_run.jar -ap px4 -lockstep -tcp 127.0.0.1:4560 -no-gui 
+
 java -Djava.ext.dirs= -jar jmavsim_run.jar [any jMAVSim options]
 ```
 
@@ -207,3 +209,105 @@ Once the Collada file has been imported into blender, it is necessary to set the
 When exporting from Blender, choose the `Wavefront (.obj)` file format. In the export dialogue, make the following changes:
 * Adjust the orientation of the model by specifying the `Forward` and `Up` directions. For example, if the z-axis in the Blender scene is pointing upwards, the correct setting for `Up:` would be `-Z up` for jMAVSIM.
 * Deselect "Objects as OBJ Objects" and select "Objects as OBJ Groups" instead. Otherwise jMAVSim will fail parsing the 3D model.
+
+
+## Mavlink <=> Sim Communication
+
+compId = 51
+                              
+Advancing SimTime             1768224791788000
+ <= HIL_SENSOR                1768224791788000
+ => HIL_ACTUATOR_CONTROLS     1768224791788000
+
+Advancing SimTime             1768224791792000
+ <= HIL_SENSOR                1768224791792000
+ <= HIL_STATE_QUATERNION      1768224791792000
+ => HIL_ACTUATOR_CONTROLS     1768224791792000
+
+Advancing SimTime             1768224791796000
+ <= HIL_SENSOR                1768224791796000
+ => HIL_ACTUATOR_CONTROLS     1768224791796000
+
+Advancing SimTime             1768224791800000
+ <= HIL_SENSOR                1768224791800000
+ <= HIL_STATE_QUATERNION      1768224791800000
+ => HIL_ACTUATOR_CONTROLS     1768224791800000
+
+Advancing SimTime             1768224791804000
+ <= HIL_SENSOR                1768224791804000
+ => HIL_ACTUATOR_CONTROLS     1768224791804000
+ <= HIL_GPS                   1768224791804000
+
+
+## Barometer and GPS
+
+    eph    13.791792
+    epv    13.87826
+    fix_type   0
+    vn     -1.4508485674777016E-14
+    ve     0.0
+    vd     0.0
+    cog    3.141592653589793
+    pressure_alt   488.0281648033758
+    abs_pressure   95597.47377712405
+    pressure_alt   488.02965719997854
+    abs_pressure   95597.1378956171
+    pressure_alt   487.92292728770116
+    abs_pressure   95598.54419168344
+    pressure_alt   487.9217679090137
+    abs_pressure   95597.26312345345
+    pressure_alt   488.13368118041905
+    abs_pressure   95597.53560451251
+
+## Every 1000 iterations:
+
+    MAVLinkMessage msg_system_time = new MAVLinkMessage(schema, "SYSTEM_TIME", sysId, componentId,
+                                                        protocolVersion);
+    Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
+    msg_system_time.set("time_unix_usec", cal.getTimeInMillis() * 1000);
+    msg_system_time.set("time_boot_ms", tu / 1000); // tu = simulation time in usec
+
+
+## Lockstep enabled
+
+### JMavSim
+
+INFO  [simulator_mavlink] Waiting for simulator to accept connection on TCP port 4560
+INFO  [simulator_mavlink] Simulator connected on TCP port 4560.
+INFO  [lockstep_scheduler] setting initial absolute time to 1768291163695000 us
+
+### Python
+
+INFO  [simulator_mavlink] Waiting for simulator to accept connection on TCP port 4560
+INFO  [simulator_mavlink] Simulator connected on TCP port 4560.
+INFO  [lockstep_scheduler] setting initial absolute time to 1768291227052348 us
+
+
+SlowdownCounter3840
+NeedsToPausetrue
+SlowdownCounter3841
+NeedsToPausetrue
+SlowdownCounter3842
+NeedsToPausetrue
+SlowdownCounter3843
+NeedsToPausetrue
+SlowdownCounter3844
+NeedsToPausetrue
+SlowdownCounter3845
+NeedsToPausetrue
+SlowdownCounter3846
+NeedsToPausetrue
+SlowdownCounter3847
+NeedsToPausetrue
+SlowdownCounter3848
+NeedsToPausetrue
+SlowdownCounter3849
+NeedsToPausetrue
+SlowdownCounter3850
+NeedsToPausetrue
+SlowdownCounter3851
+NeedsToPausetrue
+SlowdownCounter3852
+NeedsToPausetrue
+SlowdownCounter3853
+NeedsToPausetrue

@@ -112,10 +112,10 @@ public class SimpleWing {
         double s = blend(Math.abs(alphaDeg));
 
 
-        System.out.printf(" alpha=%.2f, blend=%.2f %n",
-            alphaDeg,
-            s
-        );
+        // System.out.printf(" alpha=%.2f, blend=%.2f %n",
+        //     alphaDeg,
+        //     s
+        // );
 
 
         double cl = lerp(clPoly, clSphere, s);

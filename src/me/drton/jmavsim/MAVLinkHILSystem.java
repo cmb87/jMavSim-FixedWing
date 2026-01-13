@@ -71,6 +71,11 @@ public class MAVLinkHILSystem extends MAVLinkHILSystemBase {
                 }
             }
 
+
+         //   System.out.printf("Got HIL_ACTUATOR_CONTROLS t=(%) \n", t);
+
+         //   System.out.println("Advancing SimTime " + simTimeUs  );
+           // System.out.println(" => HIL_ACTUATOR_CONTROLS " + t  );
             simulator.advanceTime();
 
             vehicle.setControl(control);
@@ -220,10 +225,17 @@ public class MAVLinkHILSystem extends MAVLinkHILSystemBase {
         } else {
             msg_sensor.set("fields_updated", sensor_source);
         }
+
+       // System.out.println(" pressure_alt" + sensors.getPressureAlt()  );
+       // System.out.println(" abs_pressure" + sensors.getPressure()  );
+
         sendMessage(msg_sensor);
 
         /* ground truth */
         if (hilStateUpdateInterval != -1 && nextHilStatePub <= tu) {
+
+            
+
             MAVLinkMessage msg_hil_state = new MAVLinkMessage(schema, "HIL_STATE_QUATERNION", sysId,
                                                               componentId, protocolVersion);
             msg_hil_state.set("time_usec", tu);
@@ -257,6 +269,8 @@ public class MAVLinkHILSystem extends MAVLinkHILSystemBase {
             msg_hil_state.set("yacc", (int)(v3d.y * 1000));
             msg_hil_state.set("zacc", (int)(v3d.z * 1000));
 
+            //System.out.println(" <= HIL_STATE_QUATERNION " + tu  );
+
             sendMessage(msg_hil_state);
             nextHilStatePub = tu + hilStateUpdateInterval;
         }
@@ -279,6 +293,19 @@ public class MAVLinkHILSystem extends MAVLinkHILSystemBase {
                 msg_gps.set("cog", (int) Math.toDegrees(gps.getCog()) * 100);
                 msg_gps.set("fix_type", gps.fix);
                 msg_gps.set("satellites_visible", 10);
+
+                // System.out.println(" eph" + gps.eph  );
+                // System.out.println(" epv" + gps.epv  );
+                // System.out.println(" fix_type" +  gps.fix  );
+
+                // System.out.println(" vn" + gps.velocity.x  );
+                // System.out.println(" ve" + gps.velocity.y  );
+                // System.out.println(" vd" +  gps.velocity.z  );
+                // System.out.println(" cog" +  gps.getCog()  );
+
+                //System.out.println(" <= HIL_GPS " + tu  );
+               // System.out.printf("Send HIL_GPS Message t=(%) \n", tu);
+
                 sendMessage(msg_gps);
             }
         }
@@ -290,6 +317,12 @@ public class MAVLinkHILSystem extends MAVLinkHILSystemBase {
             Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
             msg_system_time.set("time_unix_usec", cal.getTimeInMillis() * 1000);
             msg_system_time.set("time_boot_ms", tu / 1000);
+
+          //  System.out.println(" <= time_boot_ms " + tu / 1000);
+        //    System.out.println(" <= time_unix_usec " + cal.getTimeInMillis() * 1000);
+
+          //  System.out.printf("Send SYSTEM_TIME Message t=(%) time_unix_usec=(%) \n", tu, cal.getTimeInMillis() * 1000);
+
             sendMessage(msg_system_time);
         }
     }
